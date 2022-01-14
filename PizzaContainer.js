@@ -17,8 +17,8 @@ const PizzaContainer = ({index, imagePath, scaleOffset}) =>{
 
    const animatedStyleForScaling = useAnimatedStyle(()=> {
    const scale =  interpolate(scaleOffset.value,inputRange,[0.3,0.9,0.3],Extrapolate.CLAMP)
-   const translateX = interpolate(scaleOffset.value,inputRange,[-width/1.6,0,width/1.6],Extrapolate.EXTEND)
-    const translateY = interpolate(scaleOffset.value,inputRange,[height*0.17,0,height*0.17],Extrapolate.CLAMP)
+   const translateX = interpolate(scaleOffset.value,inputRange,[-width/2,0,width/2],Extrapolate.EXTEND)
+    const translateY = interpolate(scaleOffset.value,inputRange,[height*0.22,0,height*0.22],Extrapolate.CLAMP)
    return {
        transform : [{translateX},{translateY},{scale} ]
    }
