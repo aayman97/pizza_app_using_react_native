@@ -1,33 +1,36 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button,Dimensions, FlatList, Image, ScrollView } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-import Animated,{ useSharedValue,useAnimatedStyle, useAnimatedScrollHandler, interpolate, runOnUI, runOnJS} from 'react-native-reanimated';
-import BackgroundPlate from './BackgroundPlate';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Button,
+  Dimensions,
+  FlatList,
+  Image,
+  ScrollView,
+} from "react-native";
+import HomePage from "./Screens/HomePage";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import PizzaIngredients from "./Screens/PizzaIngredients";
 
- 
-import {assets} from './data'
-import PizzaContainer from './PizzaContainer';
-import HomePage from './Screens/HomePage';
-import PizzaIngredients from './Screens/PizzaIngredients';
-
-const { height, width } = Dimensions.get("screen");
+const Stack = createNativeStackNavigator();
 
 export default function App() {
-
-
- 
   return (
-      <View style ={{flex : 1,justifyContent : 'center',alignItems : 'center'}}>
-          <HomePage/>
-      </View>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomePage} />
+        <Stack.Screen name="Pizza Ingredients" component={PizzaIngredients} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
