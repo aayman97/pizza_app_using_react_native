@@ -8,8 +8,9 @@ import {
   Dimensions,
   FlatList,
   Image,
+  ScrollView,
+  TouchableOpacity
 } from "react-native";
-import { ScrollView, TouchableOpacity } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -17,7 +18,8 @@ import Animated, {
   withTiming,
   useAnimatedGestureHandler,
   withSpring,
-  runOnJS
+  runOnJS,
+  runOnUI
 } from "react-native-reanimated";
 import BackgroundPlate from "../BackgroundPlate";
 import { assets } from "../data";
@@ -26,7 +28,7 @@ import { PanGestureHandler } from 'react-native-gesture-handler';
 
 const { height, width } = Dimensions.get("screen");
 
-const IngredientsButtons = ({ path ,index , setState, name , ingredientState}) => {
+const IngredientsButtons = ({ path ,index , setState, name , ingredientState,acceptedState}) => {
 
 
   const [layout,setLayoutProps] = React.useState()
@@ -61,27 +63,7 @@ const IngredientsButtons = ({ path ,index , setState, name , ingredientState}) =
     onActive: (event, ctx) => {
       x.value = ctx.startX + event.translationX;
       y.value = ctx.startY+ event.translationY;
-
-      
-      
     
-    
-      // if(layout){
-      //   if( x.value > ((((width - height * 0.4)/2))- Math.abs((width * 0.18) - layout.x)) - (layout.width*index) && x.value < (width - ((width - height * 0.4)/2))){
-      //     console.log('Accepted')
-      // }else{
-      //   console.log('Not Accepted')
-      // }
-      // }
-      
-
-      
-      // if(y.value < -(((height * 0.4) - (height * 0.4)*0.9) + (width  *0.18)) && y.value > -(height * 0.4) ){
-      //   console.log('Accepted')
-      // }else{
-      //   console.log(y.value)
-      // }
-
     },
     onEnd: (_) => {
       if(layout){
@@ -91,14 +73,17 @@ const IngredientsButtons = ({ path ,index , setState, name , ingredientState}) =
           && y.value > -(height * 0.4)
           ){
         runOnJS(setAccepted)(true)
-        
+      
       }else{
         runOnJS(setAccepted)(false)
+       
       }
       }
       x.value = withSpring(0);
       y.value = withSpring(0);
       runOnJS(setAccepted)(false)
+     
+      
     },
   });
 
@@ -139,9 +124,42 @@ const IngredientsButtons = ({ path ,index , setState, name , ingredientState}) =
   },[accepted])
 
   return (
+    <TouchableOpacity onPress={() => {
+      if(name == 'basil'){
+       setState({
+      ...ingredientState,
+      basil : ingredientState.basil+1,
+      zIndex : ingredientState.zIndex+1
+    })
+    }
+    else if(name == "sausage"){
+      setState({
+        ...ingredientState,
+        sausage : ingredientState.sausage+1,
+        zIndex : ingredientState.zIndex+1
+      })
+    }else if(name == 'onion'){
+      setState({
+        ...ingredientState,
+        onion : ingredientState.onion+1
+      })
+    }else if(name == 'broccoli'){
+      setState({
+        ...ingredientState,
+        broccoli : ingredientState.broccoli+1
+      })
+    }else if(name == 'mushroom'){
+      setState({
+        ...ingredientState,
+        mushroom : ingredientState.mushroom+1
+      })
+    }
+ 
     
+   }}>
     <PanGestureHandler onGestureEvent={gestureHandler}>
-    <Animated.View
+      
+      <Animated.View
       style={[{
         width: width * 0.18,
         height: width * 0.18,
@@ -177,9 +195,61 @@ const IngredientsButtons = ({ path ,index , setState, name , ingredientState}) =
         ]}
       />
     </Animated.View>
+     
+
     </PanGestureHandler>
+    </TouchableOpacity>
   );
 };
+
+
+
+const IngredientsImage = ({imagePath, itemsLength,index}) =>{
+
+
+  const xValue = useSharedValue(0)
+  const yValue = useSharedValue(0)
+
+  const scaleOffset = useSharedValue(3)
+
+  const theta = index*(2*360/itemsLength);  
+
+  const radius = (0.95*(height * 0.4))/2
+
+  const min = 0.2
+  const max = 0.7
+  console.log(index)
+  console.log("x = "+ radius * Math.cos(theta))
+  console.log("y = "+ radius * Math.sin(theta))
+
+  const animatedStyles = useAnimatedStyle(() => {
+    return {
+      transform: [{scale : scaleOffset.value},{ translateX: xValue.value },{translateY : yValue.value}],
+    };
+  });
+
+  React.useEffect(() => {
+    xValue.value = withTiming((radius*(Math.random() * (max - min) + min)) * Math.cos(theta) + (height*0.4/12),{
+      duration : 1000
+    })
+    yValue.value = withTiming((radius*(Math.random() * (max - min) + min)) * Math.sin(theta)+(height*0.4/2.25),{
+      duration : 1000
+    })
+    scaleOffset.value = withTiming(1, {duration : 1000})
+  },[])
+  return(
+    <Animated.Image
+    source={imagePath}
+    style={[{
+      width : height*0.4,
+      height : height*0.4/(itemsLength),
+      resizeMode : 'contain',
+      position : 'absolute',
+    },animatedStyles]}
+    
+    />
+  )
+}
 
 const PizzaIngredients = ({ route, navigation }) => {
   const { imagePath } = route.params;
@@ -190,8 +260,11 @@ const PizzaIngredients = ({ route, navigation }) => {
       basil : 0,
       sausage : 0,
       onion : 0,
-      broccoli : 0
+      broccoli : 0,
+      zIndex : 0
   })
+
+  const [accepted,setAccepted] = React.useState(false)
   const scaleOffset = useSharedValue(0);
 
 
@@ -253,7 +326,7 @@ const PizzaIngredients = ({ route, navigation }) => {
           resizeMode: "contain",
           transform: [
             {
-              scale: 0.9,
+              scale: accepted ? 1.1 : 0.95,
             },{
               translateX : (width - height * 0.4)/2
             }
@@ -264,6 +337,115 @@ const PizzaIngredients = ({ route, navigation }) => {
         }}
        
       />
+
+
+      
+{
+        ingredients.basil > 0 ? <Animated.View style={{
+          backgroundColor :"transparent",
+          width : width,
+          height :height * 0.4, 
+          zIndex : ingredients.zIndex ,
+          transform :[{
+            translateY : -height*0.4
+          }]
+        }}>
+         {
+           assets.basil.map((item,index) => {
+             return(
+              <IngredientsImage imagePath={item} index={index} itemsLength={assets.basil.length}/>
+             )
+           })
+         }
+        </Animated.View>: null
+      }
+
+
+
+{
+        ingredients.sausage > 0 ? <Animated.View style={{
+          backgroundColor :"transparent",
+          width : width,
+          height :height * 0.4, 
+          zIndex : 2,
+          position : 'absolute',
+          transform :[{
+            translateY : 0
+          }]
+        }}>
+         {
+           assets.sausage.map((item,index) => {
+             return(
+              <IngredientsImage imagePath={item} index={index} itemsLength={assets.sausage.length}/>
+             )
+           })
+         }
+        </Animated.View>: null
+      }
+
+
+{
+        ingredients.onion > 0 ? <Animated.View style={{
+          backgroundColor :"transparent",
+          width : width,
+          height :height * 0.4, 
+          zIndex : 2,
+          position : 'absolute',
+          transform :[{
+            translateY : 0
+          }]
+        }}>
+         {
+           assets.onion.map((item,index) => {
+             return(
+              <IngredientsImage imagePath={item} index={index} itemsLength={assets.onion.length}/>
+             )
+           })
+         }
+        </Animated.View>: null
+      }
+
+{
+        ingredients.broccoli > 0 ? <Animated.View style={{
+          backgroundColor :"transparent",
+          width : width,
+          height :height * 0.4, 
+          zIndex : 2,
+          position : 'absolute',
+          transform :[{
+            translateY : 0
+          }]
+        }}>
+         {
+           assets.broccoli.map((item,index) => {
+             return(
+              <IngredientsImage imagePath={item} index={index} itemsLength={assets.broccoli.length}/>
+             )
+           })
+         }
+        </Animated.View>: null
+      }
+
+{
+        ingredients.mushroom > 0 ? <Animated.View style={{
+          backgroundColor :"transparent",
+          width : width,
+          height :height * 0.4, 
+          zIndex : 2,
+          position : 'absolute',
+          transform :[{
+            translateY : 0
+          }]
+        }}>
+         {
+           assets.mushroom.map((item,index) => {
+             return(
+              <IngredientsImage imagePath={item} index={index} itemsLength={assets.mushroom.length}/>
+             )
+           })
+         }
+        </Animated.View>: null
+      }
       </View>
 
 
@@ -276,7 +458,7 @@ const PizzaIngredients = ({ route, navigation }) => {
             console.log("height of the scrollview = " + (((height * 0.4) - (height * 0.4)*0.9) + (width  *0.18)))
           }}  
         >
-          <IngredientsButtons path={assets.basil[2]} index ={0} setState = {setIngredients} name ={"basil"} ingredientState = {ingredients} />
+          <IngredientsButtons path={assets.basil[2]} index ={0} setState = {setIngredients} name ={"basil"} ingredientState = {ingredients} acceptedState={setAccepted} />
           <IngredientsButtons path={assets.sausage[3]} index={1} setState = {setIngredients} name ={"sausage"} ingredientState = {ingredients}/>
           <IngredientsButtons path={assets.onion[1]} index ={2} setState = {setIngredients} name ={"onion"} ingredientState = {ingredients}/>
           <IngredientsButtons path={assets.broccoli[1]} index ={3} setState = {setIngredients} name ={"broccoli"} ingredientState = {ingredients}/>
@@ -310,6 +492,7 @@ const styles = StyleSheet.create({
   },
   content: {
     marginTop: height * 0.4 + 10 + 100,
+    height : width * 0.18
   },
   pizza: {
     margin: 32,
